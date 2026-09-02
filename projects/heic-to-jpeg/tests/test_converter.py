@@ -27,7 +27,8 @@ def test_collect_from_files_and_folders(tmp_path: Path, sample_heic: Path):
     (nested / "second.heic").write_bytes(sample_heic.read_bytes())
     (tmp_path / "ignore.jpg").write_bytes(b"x")
     found = collect_heic_files([tmp_path, sample_heic])
-    assert [p.name for p in found] == sorted(["IMG_0001.HEIC", "second.heic"])
+    assert {p.name for p in found} == {"IMG_0001.HEIC", "second.heic"}
+    assert found[0].name == "IMG_0001.HEIC"  # top-level folder sorts before album/day1
     assert collect_heic_files([tmp_path], recursive=False) == [sample_heic.resolve()]
 
 

@@ -40,7 +40,7 @@ def collect_heic_files(paths: Iterable[Path], *, recursive: bool = True) -> list
             for child in walker:
                 if child.is_file() and is_heic(child):
                     found.add(child.resolve())
-    return sorted(found)
+    return sorted(found, key=lambda p: (str(p.parent).lower(), p.name.lower()))
 
 
 def destination_for(source: Path, output_dir: Path | None) -> Path:
