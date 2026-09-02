@@ -1,0 +1,76 @@
+name: HEIC to JPEG — Windows build
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "projects/heic-to-jpeg/**"
+      - ".github/workflows/heic-to-jpeg-windows.yml"
+    tags: ["heic-to-jpeg-v*"]
+  pull_request:
+    paths:
+      - "projects/heic-to-jpeg/**"
+      - ".github/workflows/heic-to-jpeg-windows.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: pwsh
+    working-directory: projects/heic-to-jpeg
+
+jobs:
+  test:
+    name: Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: projects/heic-to-jpeg/requirements-build.txt
+      - run: python -m pip install -r requirements-build.txt
+      - run: python -m pytest -q
+
+  build:
+    name: Build .exe + installer
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: projects/heic-to-jpeg/requirements-build.txt
+      - name: Build
+        run: .\packaging\build_windows.ps1
+      - name: Smoke-test the .exe
+        run: |
+          $exe = Resolve-Path dist\HeicToJpeg.exe
+          if ((Get-Item $exe).Length -lt 5MB) { throw "HeicToJpeg.exe is suspiciously small" }
+          Get-ChildItem dist
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: HeicToJpeg-windows
+          path: |
+            projects/heic-to-jpeg/dist/HeicToJpeg.exe
+            projects/heic-to-jpeg/dist/HeicToJpeg-Setup-*.exe
+          if-no-files-found: error
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/heic-to-jpeg-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: HEIC to JPEG ${{ github.ref_name }}
+          files: |
+            projects/heic-to-jpeg/dist/HeicToJpeg.exe
+            projects/heic-to-jpeg/dist/HeicToJpeg-Setup-*.exe
+          generate_release_notes: true
