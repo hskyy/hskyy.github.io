@@ -1,0 +1,7 @@
+build/
+dist/
+packaging/icon.ico
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/

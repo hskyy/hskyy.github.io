@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "heic-to-jpeg"
+version = "1.0.0"
+description = "Windows desktop app that bulk-converts HEIC photos to JPEG."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Brian Hundley" }]
+dependencies = ["pillow>=10.4", "pillow-heif>=0.18"]
+
+[project.optional-dependencies]
+build = ["pyinstaller>=6.6"]
+test = ["pytest>=8.0"]
+
+[project.gui-scripts]
+heic-to-jpeg = "heic_to_jpeg.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
